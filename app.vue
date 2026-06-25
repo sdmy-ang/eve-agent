@@ -4,8 +4,16 @@ const { data, status, send, stop, reset } = useEveAgent();
 const isBusy = computed(() => status.value === "submitted" || status.value === "streaming");
 const hasError = computed(() => status.value === "error");
 const message = ref("");
+const isDark = ref(true);
 
 const messages = computed(() => data.value.messages);
+const themeClass = computed(() => (isDark.value ? "theme-dark" : "theme-light"));
+
+watchEffect(() => {
+  if (import.meta.client) {
+    document.body.className = themeClass.value;
+  }
+});
 
 async function handleSubmit() {
   const text = message.value.trim();
@@ -21,17 +29,22 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="chat-container">
+  <div :class="['chat-container', themeClass]">
     <header class="chat-header">
       <h1>Eve Agent</h1>
-      <button
-        v-if="messages.length > 0"
-        class="reset-btn"
-        :disabled="isBusy"
-        @click="handleReset"
-      >
-        New Session
-      </button>
+      <div class="header-actions">
+        <button class="theme-toggle" @click="isDark = !isDark">
+          {{ isDark ? "☀" : "☾" }}
+        </button>
+        <button
+          v-if="messages.length > 0"
+          class="reset-btn"
+          :disabled="isBusy"
+          @click="handleReset"
+        >
+          New Session
+        </button>
+      </div>
     </header>
 
     <div class="messages">
@@ -92,7 +105,7 @@ function handleReset() {
 </template>
 
 <style>
-:root {
+.theme-dark {
   --bg: #0f0f0f;
   --surface: #1a1a1a;
   --surface-hover: #242424;
@@ -104,6 +117,20 @@ function handleReset() {
   --danger: #ef4444;
   --user-bg: #1e3a5f;
   --assistant-bg: #1a1a1a;
+}
+
+.theme-light {
+  --bg: #ffffff;
+  --surface: #f5f5f5;
+  --surface-hover: #e8e8e8;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --danger: #dc2626;
+  --user-bg: #dbeafe;
+  --assistant-bg: #f9fafb;
 }
 
 * {
@@ -139,6 +166,29 @@ body {
 .chat-header h1 {
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  padding: 6px 10px;
+  font-size: 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .reset-btn {
