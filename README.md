@@ -4,7 +4,7 @@ A starter template for building AI agents with [Vercel Eve](https://eve.dev) —
 
 ## Stack
 
-- **Agent framework:** [Eve](https://eve.dev) v0.13+
+- **Agent framework:** [Eve](https://eve.dev) v0.15+
 - **Frontend:** [Nuxt](https://nuxt.com) v4 + `eve/nuxt` module
 - **Model:** MiniMax-M3 (via `vercel-minimax-ai-provider`)
 - **Language:** TypeScript
@@ -19,7 +19,7 @@ A starter template for building AI agents with [Vercel Eve](https://eve.dev) —
 │   └── channels/
 │       └── eve.ts          # HTTP channel + auth config
 ├── app.vue                 # Nuxt chat UI (useEveAgent hook)
-├── nuxt.config.ts          # Nuxt config with eve/nuxt module
+├── nuxt.config.ts          # Nuxt config with eve/nuxt module + devtools timeline
 ├── package.json
 └── tsconfig.json
 ```
