@@ -11,8 +11,8 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "build:agent": "eve build",
-    "dev:agent": "eve dev",
-    "start:agent": "eve start",
+    "dev:agent": "eve dev --port 2000",
+    "start:agent": "eve start --port 2000",
     "typecheck": "tsc"
   },
   "dependencies": {
