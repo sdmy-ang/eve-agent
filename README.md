@@ -17,7 +17,10 @@ A starter template for building AI agents with [Vercel Eve](https://eve.dev) —
 │   ├── agent.ts            # Agent definition (model, config)
 │   ├── instructions.md     # System prompt
 │   └── channels/
-│       └── eve.ts          # HTTP channel + auth config
+│       └── eve.ts          # HTTP channel + X-Api-Key auth config
+├── scripts/
+│   ├── generate-api-key.mjs # Generate and append API keys to .env.local
+│   └── test-api-keys.mjs    # Unit test for the apiKeys() AuthFn
 ├── app.vue                 # Nuxt chat UI (useEveAgent hook)
 ├── nuxt.config.ts          # Nuxt config with eve/nuxt module + devtools timeline
 ├── package.json
@@ -96,7 +99,25 @@ Edit `agent/instructions.md` — this is the agent's identity and behavior.
 
 ### Configure auth
 
-Edit `agent/channels/eve.ts` to set up authentication for production. See the [Eve channels docs](https://eve.dev/docs/channels) for options (Auth.js, Clerk, OIDC, etc.).
+The eve channel uses a custom `X-Api-Key` authenticator. Clients must send a valid key in the `X-Api-Key` header on every `/eve/v1/session*` request. Keys are stored in `.env.local` as `EVE_API_KEYS=client-name:key,client-name:key`.
+
+**Generate a new client key:**
+
+```sh
+node scripts/generate-api-key.mjs <client-name>
+# e.g. node scripts/generate-api-key.mjs frontend
+```
+
+The script generates a 256-bit hex key, appends it to `.env.local`, and prints the key to share with the client. Duplicate client names are rejected.
+
+**How it works:**
+
+- `agent/channels/eve.ts` walks `apiKeys() -> vercelOidc() -> placeholderAuth()` in order.
+- `apiKeys()` parses `EVE_API_KEYS` and maps each key to a `principalId` (the client name) for per-caller audit in `ctx.session.auth.current`.
+- Missing or invalid keys fall through to `vercelOidc()` (Vercel infra) then `placeholderAuth()` (401 in production).
+- `GET /eve/v1/health` is always public (no auth required).
+
+See the [Eve auth docs](https://eve.dev/docs/guides/auth-and-route-protection) for the full route auth model.
 
 ## Deploy
 
