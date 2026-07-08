@@ -1,6 +1,7 @@
 import { eveChannel } from "eve/channels/eve";
 import {
   type AuthFn,
+  localDev,
   placeholderAuth,
   vercelOidc,
 } from "eve/channels/auth";
@@ -28,9 +29,15 @@ function apiKeys(): AuthFn<Request> {
 
 export default eveChannel({
   auth: [
+    // Loopback auth — only enabled when EVE_ENABLE_LOCAL_DEV=true.
+    // Turn OFF in production. Loopback connections skip api-key checks,
+    // so a co-resident attacker (malicious dep, RCE in another service)
+    // could otherwise bypass auth via SSRF or rebinding.
+    ...(process.env.EVE_ENABLE_LOCAL_DEV === "true" ? [localDev()] : []),
     apiKeys(),
     // Lets the eve TUI and your Vercel deployments reach the deployed agent.
     vercelOidc(),
+    // Accepts requests addressed to a loopback hostname (eve dev TUI).
     // This placeholder will not allow browser requests in production.
     // Replace it with your app's auth provider, like Auth.js or Clerk,
     // or use none() for a public demo.
