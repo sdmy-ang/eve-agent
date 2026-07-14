@@ -4,9 +4,9 @@ A starter template for building AI agents with [Vercel Eve](https://eve.dev) —
 
 ## Stack
 
-- **Agent framework:** [Eve](https://eve.dev) v0.15+
+- **Agent framework:** [Eve](https://eve.dev) v0.23+
 - **Frontend:** [Nuxt](https://nuxt.com) v4 + `eve/nuxt` module
-- **Model:** MiniMax-M3 (via `vercel-minimax-ai-provider`)
+- **Model:** MiniMax-M3 (via `vercel-minimax-ai-provider`); swap to Ollama with `USE_OLLAMA=1`
 - **Language:** TypeScript
 - **Node:** 24+
 
@@ -37,12 +37,20 @@ npm install
 
 ### 2. Set environment variables
 
-Create a `.env` file with your model API key:
+Create a `.env.local` (gitignored) with the variables you need:
 
 ```sh
-AI_GATEWAY_API_KEY=your-key-here
-# Or use a direct provider key:
+# Required for the default MiniMax-M3 model
 MINIMAX_API_KEY=your-key-here
+
+# Optional: switch to a local or Ollama Cloud model instead of MiniMax
+USE_OLLAMA=1
+OLLAMA_BASE_URL=http://localhost:11434/v1   # Ollama Cloud: https://ollama.com/v1
+OLLAMA_API_KEY=ollama                        # placeholder for local; Ollama Cloud uses your account key
+OLLAMA_MODEL=llama3.2
+
+# Optional: allow the eve dev TUI to connect via loopback. NEVER set in production.
+EVE_ENABLE_LOCAL_DEV=true
 ```
 
 ### 3. Run the dev server
@@ -93,6 +101,10 @@ export default defineAgent({
 
 See all available providers in the [Eve docs](https://eve.dev/docs/introduction).
 
+### Switch to Ollama
+
+Set `USE_OLLAMA=1` (alongside `OLLAMA_BASE_URL` / `OLLAMA_API_KEY` / `OLLAMA_MODEL`) and `agent/agent.ts` will boot on the OpenAI-compatible Ollama endpoint instead of MiniMax. The context window adjusts automatically (131_072 for Ollama, 1_000_000 for MiniMax). Useful for offline development against a local model.
+
 ### Update the system prompt
 
 Edit `agent/instructions.md` — this is the agent's identity and behavior.
@@ -112,7 +124,8 @@ The script generates a 256-bit hex key, appends it to `.env.local`, and prints t
 
 **How it works:**
 
-- `agent/channels/eve.ts` walks `apiKeys() -> vercelOidc() -> placeholderAuth()` in order.
+- `agent/channels/eve.ts` walks `localDev() (conditional) -> apiKeys() -> vercelOidc() -> placeholderAuth()` in order.
+- If `EVE_ENABLE_LOCAL_DEV=true`, `localDev()` is prepended for the eve dev TUI. **Leave it unset/false in production** — `localDev()` accepts any request from a loopback address and skips API-key checks, so a co-resident attacker (malicious dep, RCE in another service, DNS rebinding) could otherwise bypass auth via SSRF.
 - `apiKeys()` parses `EVE_API_KEYS` and maps each key to a `principalId` (the client name) for per-caller audit in `ctx.session.auth.current`.
 - Missing or invalid keys fall through to `vercelOidc()` (Vercel infra) then `placeholderAuth()` (401 in production).
 - `GET /eve/v1/health` is always public (no auth required).
