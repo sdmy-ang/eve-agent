@@ -7,6 +7,7 @@
     "#evals/*": "./evals/*"
   },
   "scripts": {
+    "postinstall": "node scripts/bootstrap-env.mjs",
     "build": "nuxt build",
     "dev": "nuxt dev -p 3000",
     "preview": "nuxt preview",

@@ -37,7 +37,17 @@ npm install
 
 ### 2. Set environment variables
 
-Create a `.env.local` (gitignored) with the variables you need:
+A `.env.example` lives at the repo root as the canonical template. The
+`postinstall` step in `package.json` copies it to `.env.local` automatically
+on a fresh `npm install`, so by the time you reach this step you should
+already have a `.env.local` ready to fill in. To do it by hand:
+
+```sh
+cp .env.example .env.local     # Unix
+copy .env.example .env.local   # Windows
+```
+
+Open `.env.local` and fill in the keys you need:
 
 ```sh
 # Required for the default MiniMax-M3 model
@@ -47,11 +57,14 @@ MINIMAX_API_KEY=your-key-here
 USE_OLLAMA=1
 OLLAMA_BASE_URL=http://localhost:11434/v1   # Ollama Cloud: https://ollama.com/v1
 OLLAMA_API_KEY=ollama                        # placeholder for local; Ollama Cloud uses your account key
-OLLAMA_MODEL=llama3.2
+OLLAMA_MODEL=qwen3.5:cloud                   # or any model you've pulled locally
 
 # Optional: allow the eve dev TUI to connect via loopback. NEVER set in production.
 EVE_ENABLE_LOCAL_DEV=true
 ```
+
+See `.env.example` for the full list of supported keys (including the
+`EVE_API_KEYS` route-auth slot — see [Configure auth](#configure-auth)).
 
 ### 3. Run the dev server
 
